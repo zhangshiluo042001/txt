@@ -1,0 +1,440 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<windows.h>
+
+typedef struct
+{
+	int number;
+	char name[100];
+	float price;
+	int quantity;
+	char place[100];
+
+}Cmd;
+
+void Pos(int x, int y)//设置光标位置
+{
+    COORD pos;
+    HANDLE hOutput;
+    pos.X = x;
+    pos.Y = y;
+    hOutput = GetStdHandle(STD_OUTPUT_HANDLE);//返回标准的输入、输出或错误的设备的句柄，也就是获得输入、输出/错误的屏幕缓冲区的句柄
+    SetConsoleCursorPosition(hOutput, pos);
+}
+//封面
+void menu1()
+{
+	printf("\n     ********************************************************\n     *                                                      *");
+	printf("\n     *      ▏ ▏ ▎ ▍ ▌ ▋ ▊ ▉ █ ▇ ▆ ▅ ▄ ▃ ▂    *\n     *                                                      *");
+	printf("\n     *       welcome                                        *\n     *                                                      *");
+	printf("\n     *            to go into                                *\n     *                                                      *");
+	printf("\n     *     - the Goods Information Management System-       *\n     *                                                      *");
+	printf("\n     *     ▂  ▃  ▄  ▅  ▆  ▇  █  ▉ ▊ ▋ ▌ ▍ ▎ ▏ *\n     *                                                      *");
+	printf("\n     ********************************************************      \n"); 
+	printf("\n         Please press any key to continue:      \n");
+}
+
+//菜单
+void menu()
+{
+	printf("■■■■■■■■■■■■\n");
+	printf("■  仓库商品管理系统  ■\n");
+	printf("■■■■■■■■■■■■\n");
+	printf("■     1商品录入      ■\n");
+	printf("■     2商品删除      ■\n");
+	printf("■     3按单价排序    ■\n");
+	printf("■     4查询商品      ■\n");
+	printf("■     5修改商品信息  ■\n");
+	printf("■     6商品总价      ■\n");
+	printf("■     7退出          ■\n");
+	printf("■■■■■■■■■■■■\n");
+}
+//计算商品数量
+int count(Cmd cmd[])
+{
+	int count1 = 0;
+	for(int i = 0; i < 100; i++)
+	{
+		if(cmd[i].number == 0)
+		{
+			break;
+		}
+		count1++;
+	}
+	return count1;
+}
+//写入到文档中
+void writeFile(Cmd cmd[])
+{
+	FILE*fp;
+	fp = fopen("cmd.txt","w");
+	for(int i = 0; i < count(cmd);i++)
+	{
+		fprintf(fp,"%d\t%s\t%.2f\t%d\t%s\n",cmd[i].number,cmd[i].name,cmd[i].price,cmd[i].quantity,cmd[i].place);
+	}
+	fclose(fp);
+}
+//读取
+void readFile(Cmd cmd[])
+{
+
+  FILE *fp;
+  fp = fopen("cmd.txt","r");
+  int index = 0;
+  // 一行一行的读
+  while(!feof(fp))
+  {
+
+	  Cmd cmd1 = {}; 
+	  int number = 0;
+	  char name[100] = "\0";
+	  float price = 0;
+	  int quantity = 0;
+	  char place[100] = "\0";
+	  fscanf(fp,"%d\t%s\t%f\t%d\t%s",&number,name,&price,&quantity,place);
+	   // 把读到内容赋值给结构体
+	  strcpy(cmd1.name,name);
+	  cmd1.number = number;
+	  cmd1.price = price;
+	  cmd1.quantity = quantity;
+	  strcpy(cmd1.place,place);
+	   // 将读到的数据放到数组中
+	  cmd[index] = cmd1;
+	  index++;
+  }
+
+  fclose(fp);
+}
+//标题
+void hl()
+{
+	printf("              《商品目录》\n");
+	Pos(30,1);
+	printf("编号\t名称\t        价格    数量\t位置\n");
+}
+//输出所有商品
+void putscmd(Cmd cmd[])
+{
+	Pos(30,0);
+	hl();
+
+	for(int i = 0; i < count(cmd); i++)
+	{
+		Pos(30,i+2);
+		printf("%d\t%-16s%.2f\t%d\t%s\n",cmd[i].number,cmd[i].name,cmd[i].price,cmd[i].quantity,cmd[i].place);
+	}
+}
+//商品的录入
+void goods_ent(Cmd cmd[])
+{
+	Pos(0,13);
+   printf("请依次输入编号(回车),名称(回车),价格(回车),数量(回车),位置(回车)！\n");
+   int number = 0;
+   char name[100];
+   int quantity = 0;
+   float price = 0;
+   char place[100] = "\0";
+   printf("编号：");
+	scanf("%d",&number);
+   printf("名称：");
+   scanf("%s",&name);
+   printf("价格：");
+   scanf("%f",&price);
+    printf("数量：");
+   scanf("%d",&quantity);
+     printf("位置：");
+   scanf("%s",&place);
+   Cmd cmdi={};
+   cmdi.number=number;
+   cmdi.quantity=quantity;
+   cmdi.price=price;
+   strcpy(cmdi.name,name);
+   strcpy(cmdi.place,place);
+   cmd[count(cmd)] = cmdi;
+	writeFile(cmd);
+}
+//删除
+void Delete(Cmd cmd[])
+{
+
+	putscmd(cmd);
+	Pos(0,13);
+	printf("请输入你要删除的商品编号：");
+	int number = 0;
+	int index = -1;
+	scanf("%d",&number);
+	for(int i = 0; i < count(cmd); i++)
+	{
+	
+		if(cmd[i].number == number)
+		{
+			index = i;
+			break;
+		}
+	}
+	if(index == -1)
+	{
+		printf("您的输入有误\n");
+	}
+	else
+	{
+		getchar();
+		printf("编号\t商品名\t价格\t数量\t位置\n");
+		printf("%d\t%s\t%.2f\t%d\t%s\n",cmd[index].number,cmd[index].name,cmd[index].price,cmd[index].quantity,cmd[index].place);
+		printf("是否删除？Y/N:");
+		char choose = ' ';
+		choose = getchar();
+		if(choose =='Y' ||choose=='y')
+		{
+			for(int j = index; j < count(cmd)-1; j++)
+			{
+				cmd[j] = cmd[j+1];
+			}
+		}
+	}
+	cmd[count(cmd)-1].number = 0;
+	writeFile(cmd);
+	
+}
+//单价排序
+void upsort(Cmd cmd[])
+{
+
+	Cmd temp;
+	for(int i = 0; i < count(cmd) - 1; i++)
+	{
+		for(int j = 0; j < count(cmd) - 1 - i; j++)
+		{
+			if(cmd[j].price > cmd[j + 1].price)
+			{
+				temp = cmd[j];
+				cmd[j] = cmd[j+1];
+				cmd[j+1] = temp;
+			}
+		}
+	}
+}
+//查询商品
+void goods_query(Cmd cmd[])
+{
+	 Pos(0,13);
+	int number=0;
+  int menuid = 0;
+  char name[100] = "\0";
+  printf("1.按编号查询\t2.按名称查询\n");
+  printf("请输入您的选择：");
+  scanf("%d",&menuid);
+  if(menuid == 1)
+  {
+	 printf("请输入商品的编号：");
+	 scanf("%d",&number);
+  }
+  else
+  {
+	 printf("请输入商品的名称：");
+	 scanf("%s",&name);
+  }
+ 
+  
+  int index = -1;
+ 
+  for (int i = 0; i < count(cmd);i++)
+  {
+	  if(cmd[i].number == number||!strcmp(cmd[i].name,name))
+   {
+    index = i;
+    break;
+   }
+  }
+  if(index == -1)
+  {
+
+   printf("没有这个商品\n");
+ 
+  }
+  else
+  {
+   printf("编号\t商品名\t价格\t数量\t位置\n");
+   printf("%d\t%s\t%.2f\t%d\t%s\n",cmd[index].number,cmd[index].name,cmd[index].price,cmd[index].quantity,cmd[index].place);
+  }
+
+ 
+}
+//修改商品
+void cmd_alter(Cmd cmd[])
+{
+	 Pos(0,13);
+	  int number = 0;
+	  int index = -1;
+	  int menuid = 0;
+	  char name[100] = "\0";
+	  printf("1.按商品编号修改   2.按商品名称修改\n");
+	  printf("请输入您的选择：");
+	  scanf("%d",&menuid);
+	  if(menuid == 1)
+	  {
+		 printf("请输入商品的编号：");
+		 scanf("%d",&number);
+	  }
+	  else
+	  {
+		 printf("请输入商品的名称：");
+		 scanf("%s",&name);
+	  }
+	 for (int i = 0; i < count(cmd);i++)
+	 {
+		 if(cmd[i].number == number||!strcmp(cmd[i].name,name))
+	   {
+		index = i;
+		break;
+	   }
+	 }
+	 if(index == -1)
+	 {
+		printf("您的输入有误！");
+	 }
+	 else
+	 { printf("编号\t商品名\t价格\t数量\t位置\n");
+	 printf("%d\t%s\t%.2f\t%d\t%s\n",cmd[index].number,cmd[index].name,cmd[index].price,cmd[index].quantity,cmd[index].place);
+		printf("请输入修改后商品的编号(回车),名称(回车),价格(回车),数量(回车),置！\n");
+	   int number=0;
+	   char name[100];
+	   int quantity= 0;
+	   float price=0;
+	   char place[100] = "\0";
+	   printf("编号：");
+	   scanf("%d",&number);
+       printf("名称：");
+       scanf("%s",&name);
+       printf("价格：");
+       scanf("%f",&price);
+       printf("数量：");
+       scanf("%d",&quantity);
+		printf("位置：");
+       scanf("%s",&place);
+	   Cmd cmdi={};
+	   cmdi.number=number;
+	   cmdi.quantity=quantity;
+	   cmdi.price=price;
+	   strcpy(cmdi.name,name);
+	   strcpy(cmdi.place,place);
+	   cmd[index] = cmdi;
+	 }
+	 printf("编号\t名称\t价格\t数量\t位置\n");
+	 printf("%d\t%s\t%.2f\t%d\t%s\n",cmd[index].number,cmd[index].name,cmd[index].price,cmd[index].quantity,cmd[index].place );
+	 writeFile(cmd);
+}
+//商品总价
+void sumprice(Cmd cmd[])
+{
+	 Pos(0,13);
+	float c = 0, sum = 0;
+	for(int i = 0; i < count(cmd);i++)
+	{
+		 c = cmd[i].price * cmd[i].quantity;
+		 sum = sum + c;
+	}
+	printf("商品总价为：%.2f\n",sum);;
+}
+
+
+
+//选择
+void select(Cmd cmd[])
+{
+	int menuid = 0;
+	while(menuid != 7)
+	{
+		putscmd(cmd);
+		Pos(0,11);
+		printf("请输入菜单选项:");
+		scanf("%d",&menuid);
+		printf("\n");
+		switch(menuid)
+		{
+			case 1:
+			{
+				 
+				 
+				goods_ent(cmd);
+				getchar();
+				printf("单击回车确认！");
+				getchar();
+				system("cls");
+				menu();
+				break;
+			}
+			case 2:
+			{
+				
+				Delete(cmd);
+				getchar();
+				printf("单击回车确认！");
+				getchar();
+				system("cls");
+				menu();
+				break;
+			}
+			case 3:
+			{
+				upsort(cmd);
+				putscmd(cmd);
+				getchar();
+				Pos(0,13);
+				printf("单击回车确认！");
+				getchar();
+				system("cls");
+				menu();
+				break;
+			}
+			case 4:
+			{
+				goods_query(cmd);
+				getchar();
+				printf("单击回车确认！");
+				getchar();
+				system("cls");
+				menu();
+				break;
+			}
+			case 5:
+			{
+				cmd_alter(cmd);
+				printf("单击回车确认！");
+				getchar();
+				getchar();
+				system("cls");
+				menu();
+				break;
+			}
+			case 6:
+				{
+					sumprice(cmd);
+					printf("单击回车确认！");
+					getchar();
+					getchar();
+					system("cls");
+					menu();
+					break;
+					
+				}
+				
+		
+			
+		}
+	}
+	
+}
+int main()
+{
+	menu1();
+	getchar();
+	system("cls");
+	menu();
+	Cmd cmd[100] = {};
+	readFile(cmd);
+	select(cmd);
+
+	return 0;
+}
